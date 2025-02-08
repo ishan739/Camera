@@ -3,14 +3,21 @@ package com.example.camerax
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Color
+import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.MediaStore
+import android.util.Log
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -42,6 +49,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CameraScreen(){
 
@@ -50,7 +58,19 @@ fun CameraScreen(){
     val cameraController = remember { LifecycleCameraController(context) }
     val mainExecuter = ContextCompat.getMainExecutor(context)
 
+
     var isFrontCamera by remember { mutableStateOf(false) }
+
+    val mediaPlayer = MediaPlayer.create(context , R.raw.shutter_sound)
+
+    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibratorManager = context.getSystemService(VibratorManager::class.java)
+        vibratorManager.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Vibrator::class.java)
+    }
+
 
     Scaffold (
         modifier = Modifier.fillMaxSize(),
@@ -60,29 +80,12 @@ fun CameraScreen(){
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ){
-
                 FloatingActionButton(
                     onClick = {
-                        isFrontCamera = !isFrontCamera
-                        var cameraSelector = if (isFrontCamera){
-                            CameraSelector.DEFAULT_FRONT_CAMERA
-                        } else {
-                            CameraSelector.DEFAULT_BACK_CAMERA
-                        }
+                        mediaPlayer.start()
 
-                        cameraController.cameraSelector = cameraSelector
-                        cameraController.bindToLifecycle(lifecycleOwner)
+                        vibrator?.vibrate(VibrationEffect.createOneShot(250, 255))
 
-                    }
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_switch),
-                        contentDescription = "Switch Camera"
-                    )
-                }
-
-                FloatingActionButton(
-                    onClick = {
                         cameraController.takePicture(
                             mainExecuter,
                             object : ImageCapture.OnImageCapturedCallback() {
@@ -112,6 +115,27 @@ fun CameraScreen(){
                         contentDescription = "Capture Image"
                     )
                 }
+
+                FloatingActionButton(
+                    onClick = {
+                        isFrontCamera = !isFrontCamera
+                        cameraController.cameraSelector = if (isFrontCamera){
+                            CameraSelector.DEFAULT_FRONT_CAMERA
+                        } else {
+                            CameraSelector.DEFAULT_BACK_CAMERA
+                        }
+
+
+                        cameraController.bindToLifecycle(lifecycleOwner)
+
+                    }
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_switch),
+                        contentDescription = "Switch Camera"
+                    )
+                }
+
             }
 
 
