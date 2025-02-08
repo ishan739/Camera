@@ -1,6 +1,10 @@
 package com.example.camerax
 
+import android.content.ContentValues
 import android.graphics.Color
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -9,7 +13,6 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -43,6 +46,35 @@ fun CameraScreen(){
                         object : ImageCapture.OnImageCapturedCallback() {
                             override fun onCaptureSuccess(image: ImageProxy) {
                                 super.onCaptureSuccess(image)
+                                val contentValues = ContentValues().apply{
+                                    put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
+                                    put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                                    put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+
+                                }
+                                val uri : Uri? = context.contentResolver
+                                    .insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+                                uri?.let {
+                                    context.contentResolver.openOutputStream(it)
+                                        ?.use { outputStream ->
+                                            val buffer = image.planes[0].buffer
+                                            val bytes = ByteArray(buffer.remaining())
+                                            buffer.get(bytes)
+                                            outputStream.write(bytes)
+                                        }
+                                    Toast.makeText(
+                                        context,
+                                        "Image saved to gallery",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } ?: run {
+                                    Toast.makeText(
+                                        context,
+                                        "Failed to save image",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                                 image.close()
                             }
 
