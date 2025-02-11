@@ -39,11 +39,15 @@ android {
 }
 
 dependencies {
-        implementation (libs.androidx.camera.core.v141)
-        implementation (libs.androidx.camera.lifecycle.v141)
-        implementation (libs.androidx.camera.camera2.v141)
-        implementation (libs.androidx.camera.view.v141)
-        implementation (libs.androidx.camera.extensions.v141)
+
+    implementation (libs.barcode.scanning)
+
+
+    implementation (libs.androidx.camera.core.v141)
+    implementation (libs.androidx.camera.lifecycle.v141)
+    implementation (libs.androidx.camera.camera2.v141)
+    implementation (libs.androidx.camera.view.v141)
+    implementation (libs.androidx.camera.extensions.v141)
 
     implementation (libs.androidx.lifecycle.runtime.ktx.v262)
     implementation (libs.androidx.lifecycle.viewmodel.ktx)
